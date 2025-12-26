@@ -503,9 +503,6 @@
       <div id="fluvio-footer">
         <a href="https://fluvio.ai" target="_blank" id="fluvio-branding">Powered by FluvioAI</a>
       </div>
-      <div id="fluvio-footer">
-        <a href="https://fluvio.ai" target="_blank" id="fluvio-branding">Powered by FluvioAI</a>
-      </div>
     `;
 
     document.body.appendChild(fab);
