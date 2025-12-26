@@ -15,12 +15,21 @@
   const currentScript = document.currentScript || document.querySelector('script[src*="fluvio-universal-widget"]');
   const config = {
     webhook: currentScript?.getAttribute('data-webhook') || '',
-    agentId: currentScript?.getAttribute('data-agent-id') || '',
+    // Updated to use project_id instead of agent_id
+    projectId: currentScript?.getAttribute('data-project-id') || '',
+    // Legacy support for backward compatibility
+    agentId: currentScript?.getAttribute('data-agent-id') || '', // Deprecated - use project-id
+    voiceAgentId: currentScript?.getAttribute('data-voice-agent-id') || '', // Deprecated - use project-id
+    chatAgentId: currentScript?.getAttribute('data-chat-agent-id') || '', // Deprecated - use project-id
+    // UI Configuration
     color: currentScript?.getAttribute('data-color') || '#347D9B',
     position: currentScript?.getAttribute('data-position') || 'bottom-right',
-    title: currentScript?.getAttribute('data-title') || 'Voice Assistant',
-    subtitle: currentScript?.getAttribute('data-subtitle') || 'Live Voice Agent',
-    showTranscript: currentScript?.getAttribute('data-show-transcript') === 'true', // Default false
+    title: currentScript?.getAttribute('data-title') || 'AI Assistant',
+    subtitle: currentScript?.getAttribute('data-subtitle') || 'Voice & Chat Support',
+    showTranscript: currentScript?.getAttribute('data-show-transcript') === 'true',
+    // Mode configuration
+    mode: currentScript?.getAttribute('data-mode') || 'dual', // 'voice', 'chat', or 'dual'
+    defaultMode: currentScript?.getAttribute('data-default-mode') || 'voice', // Default active mode
     // Dynamic variables support
     companyName: currentScript?.getAttribute('data-company-name') || '',
     companyNumber: currentScript?.getAttribute('data-company-number') || '',
@@ -164,6 +173,202 @@
       #fluvio-content {
         padding: 32px 24px 24px;
         text-align: center;
+      }
+
+      #fluvio-mode-selector {
+        display: flex;
+        background: #F3F4F6;
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 24px;
+        gap: 4px;
+      }
+
+      .fluvio-mode-btn {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: #6B7280;
+      }
+
+      .fluvio-mode-btn.active {
+        background: ${config.color};
+        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .fluvio-mode-btn:hover:not(.active) {
+        background: #E5E7EB;
+        color: #374151;
+      }
+
+      #fluvio-chat-container {
+        display: none;
+        text-align: left;
+      }
+
+      #fluvio-chat-container.active {
+        display: block !important;
+      }
+
+      #fluvio-chat-messages {
+        height: 300px;
+        overflow-y: auto;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #FAFAFA;
+        color: #374151;
+      }
+
+      .fluvio-message {
+        margin-bottom: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .fluvio-message.user {
+        flex-direction: row-reverse;
+      }
+
+      .fluvio-message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .fluvio-message.agent .fluvio-message-avatar {
+        background: ${config.color};
+        color: white;
+      }
+
+      .fluvio-message.user .fluvio-message-avatar {
+        background: #6B7280;
+        color: white;
+      }
+
+      .fluvio-message-content {
+        background: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 70%;
+        font-size: 14px;
+        line-height: 1.4;
+        border: 1px solid #E5E7EB;
+        color: #374151;
+      }
+
+      .fluvio-message.user .fluvio-message-content {
+        background: ${config.color};
+        color: white;
+        border-color: ${config.color};
+      }
+
+      .fluvio-message.agent .fluvio-message-content {
+        background: white;
+        color: #1F2937;
+        border-color: #E5E7EB;
+      }
+
+      #fluvio-chat-input-container {
+        display: flex;
+        gap: 8px;
+      }
+
+      #fluvio-chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #D1D5DB;
+        border-radius: 8px;
+        font-size: 14px;
+        resize: none;
+        min-height: 20px;
+        max-height: 100px;
+        font-family: inherit;
+      }
+
+      #fluvio-chat-input:focus {
+        outline: none;
+        border-color: ${config.color};
+        box-shadow: 0 0 0 3px ${config.color}20;
+      }
+
+      #fluvio-chat-send {
+        padding: 12px 16px;
+        background: ${config.color};
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+      }
+
+      #fluvio-chat-send:hover:not(:disabled) {
+        background: ${config.color}dd;
+      }
+
+      #fluvio-chat-send:disabled {
+        background: #9CA3AF;
+        cursor: not-allowed;
+      }
+
+      #fluvio-voice-container {
+        display: block;
+        text-align: center;
+      }
+
+      #fluvio-voice-container.active {
+        display: block;
+      }
+
+      .fluvio-typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        color: #6B7280;
+        font-size: 14px;
+        font-style: italic;
+        margin-bottom: 12px;
+      }
+
+      .fluvio-typing-indicator.show {
+        display: flex;
+      }
+
+      .fluvio-typing-dots {
+        display: flex;
+        gap: 4px;
+      }
+
+      .fluvio-typing-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #9CA3AF;
+        animation: fluvio-typing 1.4s infinite ease-in-out;
+      }
+
+      .fluvio-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+      .fluvio-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+      @keyframes fluvio-typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
       }
 
       #fluvio-footer {
@@ -468,10 +673,16 @@
     // Create panel
     const panel = document.createElement('div');
     panel.id = 'fluvio-panel';
+    
+    // Determine which modes to show
+    const showVoice = config.mode === 'voice' || config.mode === 'dual';
+    const showChat = config.mode === 'chat' || config.mode === 'dual';
+    const showModeSelector = config.mode === 'dual';
+    
     panel.innerHTML = `
       <div id="fluvio-header">
         <div id="fluvio-header-content">
-          <div id="fluvio-header-icon">🎧</div>
+          <div id="fluvio-header-icon">🤖</div>
           <div id="fluvio-header-text">
             <h4>${config.title}</h4>
             <p>${config.subtitle}</p>
@@ -480,24 +691,53 @@
         <button id="fluvio-close" aria-label="Close">×</button>
       </div>
       <div id="fluvio-content">
-        <div id="fluvio-instruction">
-          Tap the call button to start talking.
+        ${showModeSelector ? `
+        <div id="fluvio-mode-selector">
+          <button class="fluvio-mode-btn ${config.defaultMode === 'voice' ? 'active' : ''}" data-mode="voice">
+            📞 Voice Call
+          </button>
+          <button class="fluvio-mode-btn ${config.defaultMode === 'chat' ? 'active' : ''}" data-mode="chat">
+            💬 Text Chat
+          </button>
         </div>
-        <div id="fluvio-status-section">
-          <span id="fluvio-status-label">Status:</span>
-          <span id="fluvio-status" class="offline">Loading...</span>
-        </div>
-        <button id="fluvio-call-button" class="start" disabled>
-          <span id="fluvio-call-icon">📞</span>
-          <span id="fluvio-call-text">Call</span>
-        </button>
-        <div id="fluvio-transcript-container">
-          <div id="fluvio-transcript-header">
-            <span id="fluvio-transcript-label">Live Transcript</span>
-            <button id="fluvio-transcript-toggle" class="${config.showTranscript ? 'active' : ''}" 
-                    aria-label="Toggle transcript" title="Toggle live transcript"></button>
+        ` : ''}
+        
+        <div id="fluvio-voice-container" class="${!showModeSelector || config.defaultMode === 'voice' ? 'active' : ''}">
+          <div id="fluvio-instruction">
+            Tap the call button to start talking.
           </div>
-          <div id="fluvio-transcript" style="display: ${config.showTranscript ? 'block' : 'none'}"></div>
+          <div id="fluvio-status-section">
+            <span id="fluvio-status-label">Status:</span>
+            <span id="fluvio-status" class="offline">Loading...</span>
+          </div>
+          <button id="fluvio-call-button" class="start" disabled>
+            <span id="fluvio-call-icon">📞</span>
+            <span id="fluvio-call-text">Call</span>
+          </button>
+          <div id="fluvio-transcript-container">
+            <div id="fluvio-transcript-header">
+              <span id="fluvio-transcript-label">Live Transcript</span>
+              <button id="fluvio-transcript-toggle" class="${config.showTranscript ? 'active' : ''}" 
+                      aria-label="Toggle transcript" title="Toggle live transcript"></button>
+            </div>
+            <div id="fluvio-transcript" style="display: ${config.showTranscript ? 'block' : 'none'}"></div>
+          </div>
+        </div>
+
+        <div id="fluvio-chat-container" class="${!showModeSelector || config.defaultMode === 'chat' ? 'active' : ''}">
+          <div id="fluvio-chat-messages"></div>
+          <div class="fluvio-typing-indicator" id="fluvio-typing-indicator">
+            <span>AI is typing</span>
+            <div class="fluvio-typing-dots">
+              <div class="fluvio-typing-dot"></div>
+              <div class="fluvio-typing-dot"></div>
+              <div class="fluvio-typing-dot"></div>
+            </div>
+          </div>
+          <div id="fluvio-chat-input-container">
+            <textarea id="fluvio-chat-input" placeholder="Type your message..." rows="1"></textarea>
+            <button id="fluvio-chat-send">Send</button>
+          </div>
         </div>
       </div>
       <div id="fluvio-footer">
@@ -515,7 +755,17 @@
       callButton: document.getElementById('fluvio-call-button'),
       callText: document.getElementById('fluvio-call-text'),
       callIcon: document.getElementById('fluvio-call-icon'),
-      transcriptContainer: document.getElementById('fluvio-transcript-container')
+      transcriptContainer: document.getElementById('fluvio-transcript-container'),
+      // Chat elements
+      chatContainer: document.getElementById('fluvio-chat-container'),
+      chatMessages: document.getElementById('fluvio-chat-messages'),
+      chatInput: document.getElementById('fluvio-chat-input'),
+      chatSend: document.getElementById('fluvio-chat-send'),
+      typingIndicator: document.getElementById('fluvio-typing-indicator'),
+      // Voice elements
+      voiceContainer: document.getElementById('fluvio-voice-container'),
+      // Mode selector
+      modeSelector: document.getElementById('fluvio-mode-selector')
     };
   }
 
@@ -584,7 +834,253 @@
     let client;
     let isCallActive = false;
     let demoMode = false;
-    let transcriptEnabled = config.showTranscript; // Track transcript state
+    let transcriptEnabled = config.showTranscript;
+    let currentMode = config.defaultMode;
+    let currentChatId = null;
+    let chatHistory = [];
+
+    // Chat functionality
+    async function startChatSession() {
+      try {
+        console.log('Creating new chat session...');
+        const response = await fetch(config.webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            project_id: config.projectId,
+            mode: 'chat',
+            action: 'create_session',
+            dynamic_variables: {
+              ...(config.companyName && { company_name: config.companyName }),
+              ...(config.companyNumber && { company_number: config.companyNumber }),
+              ...(config.companyHours && { company_hours: config.companyHours }),
+              ...(config.agentName && { AI_agent: config.agentName }),
+              ...(config.agentTitle && { AI_agent_title: config.agentTitle }),
+              ...(config.companyAddress && { company_address: config.companyAddress }),
+              ...(config.greeting && { greeting: config.greeting })
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        currentChatId = data.chat_id;
+        
+        if (!currentChatId) {
+          throw new Error('No chat ID received from webhook');
+        }
+
+        console.log('Chat session created:', currentChatId);
+        return currentChatId;
+      } catch (error) {
+        console.error('Failed to start chat session:', error);
+        throw error;
+      }
+    }
+
+    async function sendChatMessage(message) {
+      try {
+        console.log('Sending chat message:', message, 'to chat_id:', currentChatId);
+        
+        const response = await fetch(config.webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: config.projectId,
+            mode: 'chat',
+            action: 'send_message',
+            chat_id: currentChatId,
+            message: message
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Chat response received:', data);
+        
+        // Return the messages array from the response
+        return data.messages || [];
+      } catch (error) {
+        console.error('Failed to send chat message:', error);
+        throw error;
+      }
+    }
+
+    function addChatMessage(content, role = 'user') {
+      console.log('Adding chat message:', { content, role, hasMessagesContainer: !!elements.chatMessages });
+      
+      if (!elements.chatMessages) {
+        console.error('Chat messages container not found!');
+        return;
+      }
+
+      // Check if chat container is visible
+      const chatContainer = elements.chatContainer;
+      const computedStyle = window.getComputedStyle(chatContainer);
+      console.log('Chat container visibility check:', {
+        display: computedStyle.display,
+        visibility: computedStyle.visibility,
+        opacity: computedStyle.opacity,
+        className: chatContainer.className
+      });
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `fluvio-message ${role}`;
+      
+      messageDiv.innerHTML = `
+        <div class="fluvio-message-avatar">${role === 'agent' ? '🤖' : '👤'}</div>
+        <div class="fluvio-message-content">${content}</div>
+      `;
+      
+      elements.chatMessages.appendChild(messageDiv);
+      elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+      
+      chatHistory.push({ role, content, timestamp: Date.now() });
+      console.log('Message added to chat. Total messages:', elements.chatMessages.children.length);
+    }
+
+    function showTypingIndicator() {
+      elements.typingIndicator.classList.add('show');
+      elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      elements.typingIndicator.classList.remove('show');
+    }
+
+    async function handleChatMessage() {
+      const message = elements.chatInput.value.trim();
+      if (!message) return;
+
+      console.log('Chat message being sent:', message);
+
+      // Add user message to UI
+      addChatMessage(message, 'user');
+      elements.chatInput.value = '';
+      elements.chatInput.style.height = 'auto';
+      elements.chatSend.disabled = true;
+      
+      showTypingIndicator();
+
+      try {
+        // Check if we're in demo mode
+        if (demoMode || !config.projectId || config.projectId.includes('demo') || config.webhook.includes('httpbin.org')) {
+          console.log('Chat running in demo mode');
+          setTimeout(() => {
+            hideTypingIndicator();
+            
+            const demoResponses = [
+              `Thank you for your message! I understand you said: "${message}". How can I help you further?`,
+              `I received your message about "${message}". This is a demo response - in production, I would connect to your Retell chat agent.`,
+              `Great question! Regarding "${message}" - I'm currently in demo mode. Your actual chat agent would provide real responses here.`,
+              `I see you mentioned "${message}". In live mode, this would be handled by your configured Retell chat agent with full AI capabilities.`
+            ];
+            
+            const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+            addChatMessage(randomResponse, 'agent');
+            elements.chatSend.disabled = false;
+          }, 1000 + Math.random() * 2000);
+          return;
+        }
+
+        // Real chat implementation
+        console.log('Starting real chat session...');
+        
+        // Create chat session if we don't have one
+        if (!currentChatId) {
+          console.log('No existing chat session, creating new one...');
+          await startChatSession();
+        }
+
+        // Send message and get response
+        console.log('Sending message to chat session...');
+        const response = await sendChatMessage(message);
+        
+        hideTypingIndicator();
+        
+        // Process and display agent responses
+        console.log('Processing chat response:', response);
+        
+        if (response && response.length > 0) {
+          console.log(`Processing ${response.length} messages`);
+          response.forEach((msg, index) => {
+            console.log(`Processing message ${index}:`, msg);
+            if (msg.role === 'agent' && msg.content) {
+              console.log('Adding agent message to chat:', msg.content);
+              addChatMessage(msg.content, 'agent');
+            } else {
+              console.log('Skipping message - role:', msg.role, 'has content:', !!msg.content);
+            }
+          });
+        } else {
+          console.log('No messages in response, using fallback');
+          addChatMessage('I received your message. Let me help you with that.', 'agent');
+        }
+        
+        elements.chatSend.disabled = false;
+        
+      } catch (error) {
+        console.error('Chat error:', error);
+        hideTypingIndicator();
+        
+        // Show user-friendly error message
+        let errorMessage = 'Sorry, I encountered an error. Please try again.';
+        if (error.message.includes('500')) {
+          errorMessage = 'The chat service is temporarily unavailable. Please try again in a moment.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Chat service not found. Please check your configuration.';
+        } else if (error.message.includes('No chat ID')) {
+          errorMessage = 'Failed to start chat session. Please refresh and try again.';
+        }
+        
+        addChatMessage(errorMessage, 'agent');
+        elements.chatSend.disabled = false;
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      console.log('Switching to mode:', mode);
+      
+      // Update mode selector buttons
+      if (elements.modeSelector) {
+        elements.modeSelector.querySelectorAll('.fluvio-mode-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+      }
+      
+      // Show/hide containers
+      if (elements.voiceContainer) {
+        if (mode === 'voice') {
+          elements.voiceContainer.style.display = 'block';
+          elements.voiceContainer.classList.add('active');
+        } else {
+          elements.voiceContainer.style.display = 'none';
+          elements.voiceContainer.classList.remove('active');
+        }
+        console.log('Voice container display:', elements.voiceContainer.style.display);
+      }
+      
+      if (elements.chatContainer) {
+        if (mode === 'chat') {
+          elements.chatContainer.style.display = 'block';
+          elements.chatContainer.classList.add('active');
+        } else {
+          elements.chatContainer.style.display = 'none';
+          elements.chatContainer.classList.remove('active');
+        }
+        console.log('Chat container display:', elements.chatContainer.style.display);
+        console.log('Chat container classes:', elements.chatContainer.className);
+      }
+      
+      console.log('Mode switched to:', mode);
+    }
 
     try {
       // Try to find RetellWebClient
@@ -622,15 +1118,12 @@
     }
 
     // Event handlers
-elements.fab.addEventListener('click', (e) => {
-  console.log('🎧 FAB clicked');
-  
-  // FIX: Check if the style IS 'block'. 
-  // If it is empty string (initial load) or 'none', this returns false.
-  const isVisible = elements.panel.style.display === 'block';
-  
-  elements.panel.style.display = isVisible ? 'none' : 'block';
-});
+    elements.fab.addEventListener('click', (e) => {
+      console.log('🎧 FAB clicked');
+      
+      const isVisible = elements.panel.style.display === 'block';
+      elements.panel.style.display = isVisible ? 'none' : 'block';
+    });
 
     // Keyboard support
     elements.fab.addEventListener('keydown', (e) => {
@@ -644,6 +1137,59 @@ elements.fab.addEventListener('click', (e) => {
     document.getElementById('fluvio-close').addEventListener('click', (e) => {
       console.log('🎧 Close button clicked');
       elements.panel.style.display = 'none';
+    });
+
+    // Mode selector event handlers
+    if (elements.modeSelector) {
+      elements.modeSelector.addEventListener('click', (e) => {
+        if (e.target.classList.contains('fluvio-mode-btn')) {
+          const mode = e.target.dataset.mode;
+          switchMode(mode);
+        }
+      });
+    }
+
+    // Chat event handlers
+    if (elements.chatSend) {
+      console.log('Attaching chat send button event handler');
+      elements.chatSend.addEventListener('click', handleChatMessage);
+    } else {
+      console.warn('Chat send button not found');
+    }
+
+    if (elements.chatInput) {
+      console.log('Attaching chat input event handlers');
+      elements.chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          console.log('Enter key pressed in chat input');
+          handleChatMessage();
+        }
+      });
+
+      // Auto-resize textarea
+      elements.chatInput.addEventListener('input', (e) => {
+        e.target.style.height = 'auto';
+        e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+      });
+    } else {
+      console.warn('Chat input not found');
+    }
+
+    // Initialize chat with welcome message if in chat mode
+    if (currentMode === 'chat' || config.mode === 'chat') {
+      console.log('Initializing chat with welcome message');
+      setTimeout(() => {
+        addChatMessage(config.greeting || 'Hello! How can I help you today?', 'agent');
+      }, 500);
+    }
+
+    console.log('Widget initialization complete', {
+      currentMode,
+      hasVoiceContainer: !!elements.voiceContainer,
+      hasChatContainer: !!elements.chatContainer,
+      hasChatSend: !!elements.chatSend,
+      hasChatInput: !!elements.chatInput
     });
 
     // Transcript toggle functionality
@@ -666,7 +1212,6 @@ elements.fab.addEventListener('click', (e) => {
     elements.callButton.addEventListener('click', async (e) => {
       console.log('🎧 Call button clicked');
       
-      // Ensure button is not disabled
       if (elements.callButton.disabled) {
         console.log('🎧 Call button is disabled, ignoring click');
         return;
@@ -680,7 +1225,6 @@ elements.fab.addEventListener('click', (e) => {
           elements.statusEl.className = 'connecting';
           elements.callButton.disabled = true;
 
-          // Simulate connection delay
           setTimeout(() => {
             elements.statusEl.textContent = 'Connected (Demo)';
             elements.statusEl.className = 'online';
@@ -690,7 +1234,6 @@ elements.fab.addEventListener('click', (e) => {
             elements.callText.textContent = 'End Call';
             elements.transcriptContainer.classList.add('show');
             
-            // Add demo transcript only if enabled
             if (transcriptEnabled) {
               const transcriptDiv = document.getElementById('fluvio-transcript');
               transcriptDiv.textContent = 'Demo Mode: This is a simulation.\n\nIn production, this would show real-time conversation transcripts between you and the AI agent.\n\nThe actual voice calls work with your Retell AI agent when the SDK loads properly.';
@@ -718,12 +1261,33 @@ elements.fab.addEventListener('click', (e) => {
           elements.statusEl.className = 'connecting';
           elements.callButton.disabled = true;
 
+          // Check if webhook URL is a placeholder
+          if (config.webhook.includes('your-webhook') || config.webhook.includes('httpbin.org')) {
+            console.log('🎧 Demo webhook detected, simulating call...');
+            // Simulate demo call for testing
+            setTimeout(() => {
+              elements.statusEl.textContent = 'Connected (Demo)';
+              elements.statusEl.className = 'online';
+              isCallActive = true;
+              elements.callButton.className = 'end';
+              elements.callButton.disabled = false;
+              elements.callText.textContent = 'End Call';
+              elements.transcriptContainer.classList.add('show');
+              
+              if (transcriptEnabled) {
+                const transcriptDiv = document.getElementById('fluvio-transcript');
+                transcriptDiv.textContent = 'Demo Mode: Voice call simulation.\n\nTo use real voice calls:\n1. Replace webhook URL with your actual Make.com webhook\n2. Configure your voice agent ID\n3. Ensure Retell SDK loads properly\n\nThis demo shows the UI and flow without making real API calls.';
+              }
+            }, 1500);
+            return;
+          }
+
           const response = await fetch(config.webhook, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              agent_id: config.agentId,
-              // Include dynamic variables from script tag if provided
+              project_id: config.projectId,
+              mode: 'voice',
               dynamic_variables: {
                 ...(config.companyName && { company_name: config.companyName }),
                 ...(config.companyNumber && { company_number: config.companyNumber }),
@@ -737,34 +1301,30 @@ elements.fab.addEventListener('click', (e) => {
           });
 
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
           const responseText = await response.text();
           let webhookData;
           
-          // Try to parse as JSON first (for dynamic variables)
           try {
             webhookData = JSON.parse(responseText);
           } catch (e) {
-            // If not JSON, treat as raw token string (backward compatibility)
             webhookData = { access_token: responseText.trim() };
           }
 
           const accessToken = webhookData.access_token || responseText.trim();
           
           if (!accessToken) {
-            throw new Error('No access token received');
+            throw new Error('No access token received from webhook');
           }
 
-          // Prepare call options
           const callOptions = {
             accessToken: accessToken,
             sampleRate: 24000,
             enableUpdate: true
           };
 
-          // Add dynamic variables if they exist in the webhook response
           if (webhookData.call_inbound && webhookData.call_inbound.dynamic_variables) {
             callOptions.retell_llm_dynamic_variables = webhookData.call_inbound.dynamic_variables;
             console.log('🎧 Dynamic variables included:', webhookData.call_inbound.dynamic_variables);
@@ -775,13 +1335,34 @@ elements.fab.addEventListener('click', (e) => {
 
         } catch (error) {
           console.error('🎧 Call failed:', error);
-          elements.statusEl.textContent = 'Connection failed';
+          
+          // Provide more specific error messages
+          let errorMessage = 'Connection failed';
+          if (error.message.includes('CORS')) {
+            errorMessage = 'CORS error - check webhook';
+          } else if (error.message.includes('404')) {
+            errorMessage = 'Webhook not found';
+          } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error';
+          }
+          
+          elements.statusEl.textContent = errorMessage;
           elements.statusEl.className = 'offline';
           elements.callButton.disabled = false;
         }
       } else {
         console.log('🎧 Ending real call...');
-        client.stopCall();
+        if (client && client.stopCall) {
+          client.stopCall();
+        } else {
+          // Manual cleanup for demo mode
+          elements.statusEl.textContent = 'Offline';
+          elements.statusEl.className = 'offline';
+          isCallActive = false;
+          elements.callButton.className = 'start';
+          elements.callButton.disabled = false;
+          elements.callText.textContent = 'Call';
+        }
       }
     });
 
@@ -848,6 +1429,14 @@ elements.fab.addEventListener('click', (e) => {
       return;
     }
 
+    // Validate agent configuration
+    if (config.mode === 'voice' || config.mode === 'dual' || config.mode === 'chat') {
+      if (!config.projectId) {
+        console.error('🎧 Missing project ID (data-project-id)');
+        return;
+      }
+    }
+
     try {
       // Inject styles
       injectStyles();
@@ -855,18 +1444,24 @@ elements.fab.addEventListener('click', (e) => {
       // Create UI
       const elements = createWidget();
 
-      // Try to load SDK, but continue even if it fails
-      try {
-        await loadRetellSDK();
-        console.log('🎧 SDK loaded successfully, initializing with full functionality');
-      } catch (error) {
-        console.warn('🎧 SDK loading failed, initializing in demo mode:', error.message);
+      // Try to load SDK for voice functionality
+      if (config.mode === 'voice' || config.mode === 'dual') {
+        try {
+          await loadRetellSDK();
+          console.log('🎧 SDK loaded successfully, voice functionality enabled');
+        } catch (error) {
+          console.warn('🎧 SDK loading failed, voice will run in demo mode:', error.message);
+        }
       }
 
-      // Initialize widget (will auto-detect if SDK is available)
+      // Initialize widget
       initializeWidget(elements);
 
-      console.log('🎧 Retell Universal Widget ready!');
+      console.log('Fluvio Universal Widget ready!', {
+        mode: config.mode,
+        projectId: config.projectId,
+        defaultMode: config.defaultMode
+      });
     } catch (error) {
       console.error('🎧 Widget initialization failed:', error);
     }
