@@ -21,18 +21,17 @@ Upload the `.js` files to your website and use the code examples in the guides.
 
 ```
 CLIENT-DELIVERY/
-├── README.md                     # This file
-├── GITHUB-SETUP-GUIDE.md         # Complete GitHub setup (no experience needed)
+├── README.md                     # This file        # Complete GitHub setup (no experience needed)
 ├── fluvio-universal-widget.js    # Main floating chat widget
 ├── fluvio-button-widget.js       # Custom button widget
-├── examples/                     # Working test examples
-│   ├── universal-demo.html       # Floating widget demo
-│   ├── button-demo.html          # Button widget demo
-│   └── mobile-demo.html          # Mobile-friendly demo
+├── test-examples/                     # Working test examples
+│   ├── basic-test.html       # Floating widget demo
+│   ├── branded-test.html       # Floating widget demo
+│   ├── ecommerce-test.html          # Button widget demo
+│   └── mobile-test.html          # Mobile-friendly demo
 └── docs/                         # Complete documentation
     ├── QUICK-START.md             # 5-minute setup guide
     ├── CUSTOMIZATION.md           # Colors, branding, options
-    └── PLATFORM-GUIDES.md         # WordPress, Shopify, etc.
 ```
 
 ## 🎯 Two Widget Types
@@ -66,7 +65,6 @@ CLIENT-DELIVERY/
 All documentation is included in the `docs/` folder. Start with:
 - `GITHUB-SETUP-GUIDE.md` - If you're new to GitHub
 - `QUICK-START.md` - If you want to get started fast
-- `PLATFORM-GUIDES.md` - For specific website platforms
 
 ---
 
