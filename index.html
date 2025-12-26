@@ -3,249 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluvio Universal Widget - Client Demo</title>
+    <title>Fluvio Universal Widget - Voice & Chat AI Assistant</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 0;
-            background: #f8f9fa;
-            color: #333;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: white;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
         }
-        .header {
+        h1 {
             text-align: center;
-            margin-bottom: 3rem;
-            background: white;
-            padding: 3rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header h1 {
+            margin-bottom: 20px;
             font-size: 3rem;
-            margin: 0 0 1rem 0;
-            color: #2c3e50;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        .header p {
+        .subtitle {
+            text-align: center;
             font-size: 1.2rem;
-            color: #6c757d;
-        }
-        .test-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 3rem 0;
-        }
-        .test-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            border: 1px solid #e9ecef;
-        }
-        .test-card:hover {
-            transform: translateY(-5px);
-        }
-        .test-card h3 {
-            margin: 0 0 1rem 0;
-            font-size: 1.3rem;
-            color: #2c3e50;
-        }
-        .test-card p {
-            margin: 0 0 1.5rem 0;
-            color: #6c757d;
-        }
-        .btn {
-            display: inline-block;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            transition: background 0.3s ease;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .btn-primary {
-            background: #28a745;
-        }
-        .btn-primary:hover {
-            background: #218838;
-        }
-        .info-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid #e9ecef;
-        }
-        .info-section h2 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .code-block {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-            margin: 1rem 0;
-            border: 1px solid #e9ecef;
-            color: #495057;
+            margin-bottom: 40px;
+            opacity: 0.9;
         }
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
-        .feature {
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
             text-align: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
         }
         .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 3rem;
+            margin-bottom: 20px;
         }
-        .feature h4 {
-            color: #2c3e50;
-            margin: 0.5rem 0;
+        .feature-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
         }
-        .feature p {
-            color: #6c757d;
+        .feature-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 30px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #fff;
+        }
+        .test-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .test-link {
+            display: block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .test-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .test-link h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+        .test-link p {
             margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
         }
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            .header h1 {
-                font-size: 2rem;
-            }
-            .test-grid {
-                grid-template-columns: 1fr;
-            }
+        .config-example {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-working {
+            background: #28a745;
+            color: white;
+        }
+        .status-demo {
+            background: #ffc107;
+            color: #000;
+        }
+        .status-legacy {
+            background: #6c757d;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎧 Fluvio Universal Widget</h1>
-            <p>Deploy voice assistants to any website with a single script tag</p>
-        </div>
-
-        <div class="info-section">
-            <h2>🚀 One-Line Deployment</h2>
-            <p>Add this script tag to any website and the voice assistant appears immediately:</p>
-            <div class="code-block">
-&lt;script src="https://fluvioai.github.io/Fluvio-web-widget/fluvio-universal-widget.js" 
-        data-webhook="YOUR_WEBHOOK_URL"
-        data-agent-id="YOUR_AGENT_ID"&gt;&lt;/script&gt;
+        <h1>Fluvio Universal Widget</h1>
+        <p class="subtitle">AI-Powered Voice & Chat Assistant for Any Website</p>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📞</div>
+                <h3>Voice Calls</h3>
+                <p>Real-time voice conversations with your Retell AI agent. Natural speech recognition and synthesis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Text Chat</h3>
+                <p>Interactive text-based conversations with typing indicators and message history.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Dual Mode</h3>
+                <p>Seamlessly switch between voice and chat modes in a single widget interface.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Customizable</h3>
+                <p>Brand colors, titles, positions, and dynamic variables for personalized experiences.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Responsive</h3>
+                <p>Works perfectly on desktop, tablet, and mobile devices with adaptive UI.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure</h3>
+                <p>All API calls routed through your webhook. No exposed API keys or credentials.</p>
             </div>
         </div>
 
-        <h2>🧪 Live Test Examples</h2>
-        <div class="test-grid">
-            <div class="test-card">
-                <h3>🔵 Basic Test</h3>
-                <p>Default blue widget with standard positioning and branding. Perfect for most websites.</p>
-                <a href="test-examples/basic-test.html" class="btn btn-primary">Test Basic Widget</a>
-            </div>
-
-            <div class="test-card">
-                <h3>🎨 Branded Test</h3>
-                <p>Custom orange branding with bottom-left positioning. Shows how to match company colors.</p>
-                <a href="test-examples/branded-test.html" class="btn btn-primary">Test Branded Widget</a>
-            </div>
-
-            <div class="test-card">
-                <h3>🛒 E-commerce Test</h3>
-                <p>Sales assistant widget positioned in top-right corner. Perfect for product pages.</p>
-                <a href="test-examples/ecommerce-test.html" class="btn btn-primary">Test E-commerce Widget</a>
-            </div>
-
-            <div class="test-card">
-                <h3>📱 Mobile Test</h3>
-                <p>Mobile-responsive design test. Resize your browser or use mobile device to test.</p>
-                <a href="test-examples/mobile-test.html" class="btn btn-primary">Test Mobile Widget</a>
-            </div>
-        </div>
-
-        <div class="info-section">
-            <h2>✨ Key Features</h2>
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">🌐</div>
-                    <h4>Universal Compatibility</h4>
-                    <p>Works on any platform</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📱</div>
-                    <h4>Mobile Responsive</h4>
-                    <p>Perfect on all devices</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🎨</div>
-                    <h4>Fully Customizable</h4>
-                    <p>Brand colors & positioning</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">⚡</div>
-                    <h4>Lightweight</h4>
-                    <p>No dependencies</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔧</div>
-                    <h4>Easy Deploy</h4>
-                    <p>One script tag</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🛡️</div>
-                    <h4>Robust</h4>
-                    <p>Multiple CDN fallbacks</p>
-                </div>
+        <div class="test-section">
+            <h2>Test & Demo Files</h2>
+            <p>Try out the widget functionality with these test pages:</p>
+            
+            <div class="test-links">
+                <a href="test-project-id-widget.html" class="test-link">
+                    <h4>Production Test <span class="status-badge status-working">Current</span></h4>
+                    <p>Test with your real project ID and webhook. Full voice and chat functionality with live configuration.</p>
+                </a>
+                
+                <a href="test-working-chat.html" class="test-link">
+                    <h4>Success Demo <span class="status-badge status-working">Working</span></h4>
+                    <p>Demonstrates successful implementation with real AI responses and status indicators.</p>
+                </a>
+                
+                <a href="test-chat-webhook.html" class="test-link">
+                    <h4>Chat Webhook Tester <span class="status-badge status-demo">Debug</span></h4>
+                    <p>Test your webhook endpoints for chat session creation and message handling.</p>
+                </a>
+                
+                <a href="test-webhook.html" class="test-link">
+                    <h4>General Webhook Test <span class="status-badge status-demo">Debug</span></h4>
+                    <p>Test voice and chat webhook responses with detailed debugging and validation.</p>
+                </a>
             </div>
         </div>
 
-        <div class="info-section">
-            <h2>🎯 Perfect for Agencies</h2>
-            <ul>
-                <li><strong>Scale infinitely</strong> - Deploy to unlimited clients instantly</li>
-                <li><strong>Support any platform</strong> - WordPress, Shopify, Squarespace, Wix, custom sites</li>
-                <li><strong>30-second onboarding</strong> - Clients just paste one line of code</li>
-                <li><strong>Centralized updates</strong> - Update all clients by updating one file</li>
-                <li><strong>White-label ready</strong> - Fully brandable per client</li>
-            </ul>
+        <div class="test-section">
+            <h2>Legacy Examples</h2>
+            <p>Original test examples (voice-only functionality):</p>
+            
+            <div class="test-links">
+                <a href="test-examples/basic-test.html" class="test-link">
+                    <h4>Basic Test <span class="status-badge status-legacy">Legacy</span></h4>
+                    <p>Default blue widget with standard positioning and branding.</p>
+                </a>
+                
+                <a href="test-examples/branded-test.html" class="test-link">
+                    <h4>Branded Test <span class="status-badge status-legacy">Legacy</span></h4>
+                    <p>Custom orange branding with bottom-left positioning.</p>
+                </a>
+                
+                <a href="test-examples/ecommerce-test.html" class="test-link">
+                    <h4>E-commerce Test <span class="status-badge status-legacy">Legacy</span></h4>
+                    <p>Sales assistant widget positioned in top-right corner.</p>
+                </a>
+                
+                <a href="test-examples/mobile-test.html" class="test-link">
+                    <h4>Mobile Test <span class="status-badge status-legacy">Legacy</span></h4>
+                    <p>Mobile-responsive design test for voice-only functionality.</p>
+                </a>
+            </div>
         </div>
 
-        <div class="info-section">
-            <h2>📋 Deployment Options</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div class="test-section">
+            <h2>Quick Start</h2>
+            <p>Add the widget to any website with a single script tag:</p>
+            
+            <div class="config-example">
+&lt;!-- Dual Mode (Voice + Chat) --&gt;
+&lt;script src="fluvio-universal-widget.js" 
+        data-webhook="https://hook.us2.make.com/your-webhook"
+        data-project-id="your-project-id"
+        data-mode="dual"
+        data-default-mode="voice"
+        data-title="AI Assistant"
+        data-subtitle="Voice &amp; Chat Support"&gt;&lt;/script&gt;
+
+&lt;!-- Voice Only --&gt;
+&lt;script src="fluvio-universal-widget.js" 
+        data-webhook="https://hook.us2.make.com/your-webhook"
+        data-project-id="your-project-id"
+        data-mode="voice"&gt;&lt;/script&gt;
+
+&lt;!-- Chat Only --&gt;
+&lt;script src="fluvio-universal-widget.js" 
+        data-webhook="https://hook.us2.make.com/your-webhook"
+        data-project-id="your-project-id"
+        data-mode="chat"&gt;&lt;/script&gt;
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Configuration Options</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                 <div>
-                    <h4>🚀 Netlify (Recommended)</h4>
-                    <p>Drag & drop deployment, instant live URL</p>
-                    <a href="hosting-options/netlify-deploy.md" class="btn">View Guide</a>
+                    <h4>Required</h4>
+                    <ul>
+                        <li><code>data-webhook</code> - Your Make.com webhook URL</li>
+                        <li><code>data-project-id</code> - Your Retell project ID</li>
+                    </ul>
                 </div>
                 <div>
-                    <h4>📚 GitHub Pages</h4>
-                    <p>Free hosting with version control</p>
-                    <a href="hosting-options/github-pages.md" class="btn">View Guide</a>
+                    <h4>Mode Options</h4>
+                    <ul>
+                        <li><code>data-mode</code> - "voice", "chat", or "dual"</li>
+                        <li><code>data-default-mode</code> - "voice" or "chat"</li>
+                    </ul>
                 </div>
+                <div>
+                    <h4>Customization</h4>
+                    <ul>
+                        <li><code>data-color</code> - Primary color (hex)</li>
+                        <li><code>data-title</code> - Widget header title</li>
+                        <li><code>data-subtitle</code> - Widget header subtitle</li>
+                        <li><code>data-position</code> - Widget position</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Dynamic Variables</h4>
+                    <ul>
+                        <li><code>data-company-name</code> - Company name</li>
+                        <li><code>data-agent-name</code> - AI agent name</li>
+                        <li><code>data-greeting</code> - Custom greeting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Documentation</h2>
+            <div class="test-links">
+                <a href="WEBHOOK-MODIFICATION-GUIDE.md" class="test-link">
+                    <h4>Webhook Setup Guide</h4>
+                    <p>Complete guide for configuring your Make.com webhook for voice and chat.</p>
+                </a>
+                
+                <a href="README.md" class="test-link">
+                    <h4>README</h4>
+                    <p>Project overview, features, and implementation details.</p>
+                </a>
+                
+                <a href="GITHUB-SETUP-GUIDE.md" class="test-link">
+                    <h4>GitHub Setup Guide</h4>
+                    <p>Instructions for hosting and deploying the widget.</p>
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- Demo Widget -->
+    <script src="fluvio-universal-widget.js" 
+            data-webhook="https://httpbin.org/post"
+            data-project-id="demo-project"
+            data-mode="dual"
+            data-default-mode="voice"
+            data-title="Demo Assistant"
+            data-subtitle="Try Voice & Chat"
+            data-company-name="Fluvio Demo">
+    </script>
 </body>
 </html>
