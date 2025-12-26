@@ -214,7 +214,7 @@
       }
 
       #fluvio-chat-container.active {
-        display: block;
+        display: block !important;
       }
 
       #fluvio-chat-messages {
@@ -225,6 +225,7 @@
         padding: 16px;
         margin-bottom: 16px;
         background: #FAFAFA;
+        color: #374151;
       }
 
       .fluvio-message {
@@ -267,12 +268,19 @@
         font-size: 14px;
         line-height: 1.4;
         border: 1px solid #E5E7EB;
+        color: #374151;
       }
 
       .fluvio-message.user .fluvio-message-content {
         background: ${config.color};
         color: white;
         border-color: ${config.color};
+      }
+
+      .fluvio-message.agent .fluvio-message-content {
+        background: white;
+        color: #1F2937;
+        border-color: #E5E7EB;
       }
 
       #fluvio-chat-input-container {
@@ -834,12 +842,14 @@
     // Chat functionality
     async function startChatSession() {
       try {
+        console.log('Creating new chat session...');
         const response = await fetch(config.webhook, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             project_id: config.projectId,
             mode: 'chat',
+            action: 'create_session',
             dynamic_variables: {
               ...(config.companyName && { company_name: config.companyName }),
               ...(config.companyNumber && { company_number: config.companyNumber }),
@@ -853,61 +863,73 @@
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
         currentChatId = data.chat_id;
         
         if (!currentChatId) {
-          throw new Error('No chat ID received');
+          throw new Error('No chat ID received from webhook');
         }
 
-        console.log('🎧 Chat session started:', currentChatId);
+        console.log('Chat session created:', currentChatId);
         return currentChatId;
       } catch (error) {
-        console.error('🎧 Failed to start chat session:', error);
+        console.error('Failed to start chat session:', error);
         throw error;
       }
     }
 
     async function sendChatMessage(message) {
-      if (!currentChatId) {
-        await startChatSession();
-      }
-
       try {
-        const response = await fetch('https://api.retellai.com/v2/create-chat-completion', {
+        console.log('Sending chat message:', message, 'to chat_id:', currentChatId);
+        
+        const response = await fetch(config.webhook, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${await getRetellApiKey()}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            project_id: config.projectId,
+            mode: 'chat',
+            action: 'send_message',
             chat_id: currentChatId,
-            content: message
+            message: message
           })
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('Chat response received:', data);
+        
+        // Return the messages array from the response
         return data.messages || [];
       } catch (error) {
-        console.error('🎧 Failed to send chat message:', error);
+        console.error('Failed to send chat message:', error);
         throw error;
       }
     }
 
-    async function getRetellApiKey() {
-      // For demo purposes, we'll simulate the API call
-      // In production, you'd need to get the API key from your backend
-      throw new Error('Direct API calls require backend implementation');
-    }
-
     function addChatMessage(content, role = 'user') {
+      console.log('Adding chat message:', { content, role, hasMessagesContainer: !!elements.chatMessages });
+      
+      if (!elements.chatMessages) {
+        console.error('Chat messages container not found!');
+        return;
+      }
+
+      // Check if chat container is visible
+      const chatContainer = elements.chatContainer;
+      const computedStyle = window.getComputedStyle(chatContainer);
+      console.log('Chat container visibility check:', {
+        display: computedStyle.display,
+        visibility: computedStyle.visibility,
+        opacity: computedStyle.opacity,
+        className: chatContainer.className
+      });
+
       const messageDiv = document.createElement('div');
       messageDiv.className = `fluvio-message ${role}`;
       
@@ -920,6 +942,7 @@
       elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
       
       chatHistory.push({ role, content, timestamp: Date.now() });
+      console.log('Message added to chat. Total messages:', elements.chatMessages.children.length);
     }
 
     function showTypingIndicator() {
@@ -937,22 +960,21 @@
 
       console.log('Chat message being sent:', message);
 
-      // Add user message
+      // Add user message to UI
       addChatMessage(message, 'user');
       elements.chatInput.value = '';
-      elements.chatInput.style.height = 'auto'; // Reset textarea height
+      elements.chatInput.style.height = 'auto';
       elements.chatSend.disabled = true;
       
       showTypingIndicator();
 
       try {
-        // For demo mode or missing project ID, simulate AI response
-        if (demoMode || !config.projectId || config.projectId.includes('demo')) {
+        // Check if we're in demo mode
+        if (demoMode || !config.projectId || config.projectId.includes('demo') || config.webhook.includes('httpbin.org')) {
           console.log('Chat running in demo mode');
           setTimeout(() => {
             hideTypingIndicator();
             
-            // Generate a more realistic demo response
             const demoResponses = [
               `Thank you for your message! I understand you said: "${message}". How can I help you further?`,
               `I received your message about "${message}". This is a demo response - in production, I would connect to your Retell chat agent.`,
@@ -963,31 +985,61 @@
             const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
             addChatMessage(randomResponse, 'agent');
             elements.chatSend.disabled = false;
-          }, 1000 + Math.random() * 2000); // Random delay between 1-3 seconds
+          }, 1000 + Math.random() * 2000);
           return;
         }
 
-        // Real chat implementation using webhook
+        // Real chat implementation
         console.log('Starting real chat session...');
         
-        // First, start a chat session if we don't have one
+        // Create chat session if we don't have one
         if (!currentChatId) {
-          console.log('Creating new chat session...');
+          console.log('No existing chat session, creating new one...');
           await startChatSession();
         }
 
-        // For now, simulate the chat response since we need to implement the full chat completion API
-        // In a full implementation, this would call the Retell chat completion API
-        setTimeout(() => {
-          hideTypingIndicator();
-          addChatMessage(`I received your message: "${message}". Chat functionality is working! In production, this would connect to your Retell chat agent for real AI responses.`, 'agent');
-          elements.chatSend.disabled = false;
-        }, 1500);
+        // Send message and get response
+        console.log('Sending message to chat session...');
+        const response = await sendChatMessage(message);
+        
+        hideTypingIndicator();
+        
+        // Process and display agent responses
+        console.log('Processing chat response:', response);
+        
+        if (response && response.length > 0) {
+          console.log(`Processing ${response.length} messages`);
+          response.forEach((msg, index) => {
+            console.log(`Processing message ${index}:`, msg);
+            if (msg.role === 'agent' && msg.content) {
+              console.log('Adding agent message to chat:', msg.content);
+              addChatMessage(msg.content, 'agent');
+            } else {
+              console.log('Skipping message - role:', msg.role, 'has content:', !!msg.content);
+            }
+          });
+        } else {
+          console.log('No messages in response, using fallback');
+          addChatMessage('I received your message. Let me help you with that.', 'agent');
+        }
+        
+        elements.chatSend.disabled = false;
         
       } catch (error) {
         console.error('Chat error:', error);
         hideTypingIndicator();
-        addChatMessage('Sorry, I encountered an error. Please try again.', 'agent');
+        
+        // Show user-friendly error message
+        let errorMessage = 'Sorry, I encountered an error. Please try again.';
+        if (error.message.includes('500')) {
+          errorMessage = 'The chat service is temporarily unavailable. Please try again in a moment.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Chat service not found. Please check your configuration.';
+        } else if (error.message.includes('No chat ID')) {
+          errorMessage = 'Failed to start chat session. Please refresh and try again.';
+        }
+        
+        addChatMessage(errorMessage, 'agent');
         elements.chatSend.disabled = false;
       }
     }
@@ -1005,12 +1057,26 @@
       
       // Show/hide containers
       if (elements.voiceContainer) {
-        elements.voiceContainer.style.display = mode === 'voice' ? 'block' : 'none';
+        if (mode === 'voice') {
+          elements.voiceContainer.style.display = 'block';
+          elements.voiceContainer.classList.add('active');
+        } else {
+          elements.voiceContainer.style.display = 'none';
+          elements.voiceContainer.classList.remove('active');
+        }
         console.log('Voice container display:', elements.voiceContainer.style.display);
       }
+      
       if (elements.chatContainer) {
-        elements.chatContainer.style.display = mode === 'chat' ? 'block' : 'none';
+        if (mode === 'chat') {
+          elements.chatContainer.style.display = 'block';
+          elements.chatContainer.classList.add('active');
+        } else {
+          elements.chatContainer.style.display = 'none';
+          elements.chatContainer.classList.remove('active');
+        }
         console.log('Chat container display:', elements.chatContainer.style.display);
+        console.log('Chat container classes:', elements.chatContainer.className);
       }
       
       console.log('Mode switched to:', mode);

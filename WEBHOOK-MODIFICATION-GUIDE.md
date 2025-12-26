@@ -10,55 +10,69 @@ Widget → Make.com → Retell Create Web Call API → Access Token → Widget
 
 ## New Webhook Flow (Voice + Chat)
 ```
-Widget → Make.com → Route by Mode → Retell API → Response → Widget
+Widget → Make.com → Route by Mode & Action → Retell API → Response → Widget
 ```
 
 ## Step 1: Update Webhook Input Structure
 
-Your webhook currently receives:
+Your webhook now needs to handle different actions:
+
+**Voice Call Request:**
 ```json
 {
-  "agent_id": "agent_your_agent_id",
-  "dynamic_variables": {
-    "company_name": "Your Company"
-  }
+  "project_id": "ZWQ4VZV",
+  "mode": "voice"
 }
 ```
 
-**Add a new `mode` parameter:**
+**Chat Session Creation:**
 ```json
 {
-  "agent_id": "agent_your_agent_id",
-  "mode": "voice",
-  "dynamic_variables": {
-    "company_name": "Your Company"
-  }
+  "project_id": "ZWQ4VZV", 
+  "mode": "chat",
+  "action": "create_session"
 }
 ```
 
-## Step 2: Add Conditional Logic in Make.com
+**Chat Message Request:**
+```json
+{
+  "project_id": "ZWQ4VZV",
+  "mode": "chat", 
+  "action": "send_message",
+  "chat_id": "chat_abc123",
+  "message": "Hello, how are you?"
+}
+```
+
+## Step 2: Add Router Logic in Make.com
 
 ### 2.1 Add a Router Module
 1. In your Make.com scenario, add a **Router** module after your webhook trigger
-2. Create two routes:
-   - **Route 1**: Voice calls (`mode = "voice"` or `mode` is empty)
-   - **Route 2**: Chat (`mode = "chat"`)
+2. Create three routes:
+   - **Route 1**: Voice calls (`mode = "voice"`)
+   - **Route 2**: Chat session creation (`mode = "chat" AND action = "create_session"`)
+   - **Route 3**: Chat messages (`mode = "chat" AND action = "send_message"`)
 
 ### 2.2 Configure Route Filters
 **Voice Route Filter:**
 ```
-{{1.mode}} = "voice" OR {{1.mode}} = ""
+{{1.mode}} = "voice"
 ```
 
-**Chat Route Filter:**
+**Chat Session Route Filter:**
 ```
-{{1.mode}} = "chat"
+{{1.mode}} = "chat" AND {{1.action}} = "create_session"
 ```
 
-## Step 3: Configure Voice Route (Existing Logic)
+**Chat Message Route Filter:**
+```
+{{1.mode}} = "chat" AND {{1.action}} = "send_message"
+```
 
-Keep your existing Retell API call for voice:
+## Step 3: Configure API Calls
 
+### Voice Route (Existing)
 **HTTP Module Settings:**
 - **URL**: `https://api.retellai.com/v2/create-web-call`
 - **Method**: POST
@@ -70,17 +84,14 @@ Keep your existing Retell API call for voice:
 - **Body**:
   ```json
   {
-    "agent_id": "{{1.agent_id}}",
+    "agent_id": "YOUR_CHAT_AGENT_ID",
     "retell_llm_dynamic_variables": {{1.dynamic_variables}}
   }
   ```
 
-## Step 4: Configure Chat Route (New Logic)
-
-Add a new HTTP module for chat:
-
+### Chat Session Route (New)
 **HTTP Module Settings:**
-- **URL**: `https://api.retellai.com/v2/create-chat`
+- **URL**: `https://api.retellai.com/create-chat`
 - **Method**: POST
 - **Headers**: 
   ```
@@ -90,46 +101,70 @@ Add a new HTTP module for chat:
 - **Body**:
   ```json
   {
-    "agent_id": "{{1.agent_id}}",
+    "agent_id": "YOUR_CHAT_AGENT_ID",
     "retell_llm_dynamic_variables": {{1.dynamic_variables}}
   }
   ```
 
-## Step 5: Format Responses
+### Chat Message Route (New)
+**HTTP Module Settings:**
+- **URL**: `https://api.retellai.com/create-chat-completion`
+- **Method**: POST
+- **Headers**: 
+  ```
+  Authorization: Bearer YOUR_RETELL_API_KEY
+  Content-Type: application/json
+  ```
+- **Body**:
+  ```json
+  {
+    "chat_id": "{{1.chat_id}}",
+    "content": "{{1.message}}"
+  }
+  ```
 
-### Voice Response (Existing)
-Return the access token as before:
+## Step 4: Format Responses
+
+### Voice Response
 ```json
 {
   "access_token": "{{retell_response.access_token}}"
 }
 ```
 
-### Chat Response (New)
-Return the chat ID with mode indicator:
+### Chat Session Response
 ```json
 {
   "chat_id": "{{retell_response.chat_id}}",
-  "mode": "chat"
+  "mode": "chat",
+  "action": "session_created"
 }
 ```
 
-## Step 6: Merge Routes
-
-Use an **Aggregator** or **Array Aggregator** to merge both routes back into a single response.
+### Chat Message Response
+```json
+{
+  "messages": {{retell_response.messages}},
+  "mode": "chat", 
+  "action": "message_sent"
+}
+```
 
 ## Complete Make.com Scenario Structure
 
 ```
 Webhook Trigger
     ↓
-Router (mode check)
+Router (mode & action check)
     ├── Voice Route
     │   ├── HTTP: Create Web Call
     │   └── Response: access_token
-    └── Chat Route
-        ├── HTTP: Create Chat
-        └── Response: chat_id + mode
+    ├── Chat Session Route  
+    │   ├── HTTP: Create Chat
+    │   └── Response: chat_id + mode
+    └── Chat Message Route
+        ├── HTTP: Create Chat Completion
+        └── Response: messages + mode
     ↓
 Aggregator (merge responses)
     ↓
@@ -138,72 +173,53 @@ Webhook Response
 
 ## Testing Your Modified Webhook
 
-### Test Voice Mode (Existing)
+### Test Voice Mode
 ```bash
 curl -X POST "https://hook.us2.make.com/your-webhook" \
   -H "Content-Type: application/json" \
   -d '{
-    "agent_id": "agent_voice_123",
+    "project_id": "ZWQ4VZV",
     "mode": "voice"
   }'
 ```
 
-**Expected Response:**
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### Test Chat Mode (New)
+### Test Chat Session Creation
 ```bash
 curl -X POST "https://hook.us2.make.com/your-webhook" \
   -H "Content-Type: application/json" \
   -d '{
-    "agent_id": "agent_chat_456", 
-    "mode": "chat"
+    "project_id": "ZWQ4VZV",
+    "mode": "chat",
+    "action": "create_session"
   }'
 ```
 
-**Expected Response:**
-```json
-{
-  "chat_id": "Jabr9TXYYJHfvl6Syypi88rdAHYHmcq6",
-  "mode": "chat"
-}
+### Test Chat Message
+```bash
+curl -X POST "https://hook.us2.make.com/your-webhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": "ZWQ4VZV",
+    "mode": "chat", 
+    "action": "send_message",
+    "chat_id": "your_chat_id_from_previous_call",
+    "message": "Hello!"
+  }'
 ```
-
-## Backward Compatibility
-
-Your existing widget implementations will continue working because:
-- If `mode` is not provided, it defaults to voice route
-- Voice response format remains unchanged
-- Same webhook URL is used
-
-## Error Handling
-
-Add error handling for both routes:
-
-```json
-{
-  "error": "{{error_message}}",
-  "mode": "{{1.mode}}"
-}
-```
-
-## Next Steps
-
-1. **Modify your Make.com scenario** following steps above
-2. **Test both voice and chat modes** using the curl commands
-3. **Update your widget** to send the `mode` parameter
-4. **Deploy and test** the dual-mode functionality
 
 ## Required Retell Setup
 
 Before testing, ensure you have:
 - ✅ Voice agent created in Retell dashboard
 - ✅ Chat agent created in Retell dashboard  
-- ✅ API key with permissions for both web calls and chat
-- ✅ Different agent IDs for voice vs chat modes
+- ✅ API key with permissions for web calls, chat creation, and chat completion
+- ✅ Different agent IDs for voice vs chat (or same agent ID if using one agent for both)
 
-The modification is simple and maintains full backward compatibility with your existing voice-only implementations.
+## Security Notes
+
+- API key is safely stored in Make.com (not exposed to frontend)
+- All Retell API calls go through your webhook
+- Widget never directly calls Retell APIs
+- Chat sessions are managed server-side
+
+The modification maintains full backward compatibility while adding comprehensive chat support!
