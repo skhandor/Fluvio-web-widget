@@ -166,6 +166,44 @@
         text-align: center;
       }
 
+      #fluvio-footer {
+        padding: 12px 24px 16px;
+        text-align: center;
+        border-top: 1px solid #F3F4F6;
+        background: #FAFAFA;
+      }
+
+      #fluvio-branding {
+        font-size: 12px;
+        color: #9CA3AF;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      #fluvio-branding:hover {
+        color: ${config.color};
+      }
+
+      #fluvio-footer {
+        padding: 12px 24px 16px;
+        text-align: center;
+        border-top: 1px solid #F3F4F6;
+        background: #FAFAFA;
+      }
+
+      #fluvio-branding {
+        font-size: 12px;
+        color: #9CA3AF;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      #fluvio-branding:hover {
+        color: ${config.color};
+      }
+
       #fluvio-instruction {
         color: #6B7280;
         font-size: 16px;
@@ -461,6 +499,12 @@
           </div>
           <div id="fluvio-transcript" style="display: ${config.showTranscript ? 'block' : 'none'}"></div>
         </div>
+      </div>
+      <div id="fluvio-footer">
+        <a href="https://fluvio.ai" target="_blank" id="fluvio-branding">Powered by FluvioAI</a>
+      </div>
+      <div id="fluvio-footer">
+        <a href="https://fluvio.ai" target="_blank" id="fluvio-branding">Powered by FluvioAI</a>
       </div>
     `;
 
