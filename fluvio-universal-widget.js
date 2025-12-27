@@ -5,7 +5,7 @@
  * Usage:
  * <script src="https://your-domain.com/fluvio-universal-widget.js" 
  *         data-webhook="https://hook.us2.make.com/your-webhook"
- *         data-agent-id="agent_your_agent_id"></script>
+ *         data-project-id="project_your_project_id"></script>
  */
 
 (function() {
@@ -47,7 +47,61 @@
   }
   window.FluvioWidgetLoaded = true;
 
-  console.log('🎧 Fluvio Universal Widget Loading...');
+  console.log('Fluvio Universal Widget Loading...');
+
+  // Load Lucide Icons
+  function loadLucideIcons() {
+    return new Promise((resolve, reject) => {
+      if (window.lucide) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/lucide@latest/dist/umd/lucide.js';
+      
+      script.onload = () => {
+        console.log('Lucide icons loaded successfully');
+        resolve();
+      };
+      
+      script.onerror = () => {
+        console.warn('Failed to load Lucide icons, using fallback');
+        resolve(); // Continue without icons
+      };
+      
+      document.head.appendChild(script);
+    });
+  }
+
+  // Create Lucide icon element
+  function createIcon(iconName, className = '') {
+    if (window.lucide && window.lucide.createElement) {
+      try {
+        const iconElement = window.lucide.createElement(window.lucide[iconName] || window.lucide.MessageCircle);
+        if (className) {
+          iconElement.className = className;
+        }
+        return iconElement.outerHTML;
+      } catch (e) {
+        console.warn('Failed to create Lucide icon:', iconName);
+      }
+    }
+    
+    // Fallback to data attributes for Lucide
+    return `<i data-lucide="${iconName}" class="${className}"></i>`;
+  }
+
+  // Initialize Lucide icons in DOM
+  function initializeLucideIcons() {
+    if (window.lucide && window.lucide.createIcons) {
+      try {
+        window.lucide.createIcons();
+      } catch (e) {
+        console.warn('Failed to initialize Lucide icons:', e);
+      }
+    }
+  }
 
   // Inject CSS styles
   function injectStyles() {
@@ -74,6 +128,11 @@
         border: none;
       }
 
+      #fluvio-fab svg {
+        width: 24px;
+        height: 24px;
+      }
+
       #fluvio-fab:hover {
         transform: translateY(-2px) scale(1.05);
         box-shadow: 0 12px 40px rgba(52, 125, 155, 0.4);
@@ -89,6 +148,8 @@
         bottom: 100px;
         right: 20px;
         width: 380px;
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 140px);
         background: #fff;
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.15);
@@ -136,6 +197,11 @@
         font-size: 16px;
       }
 
+      #fluvio-header-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+
       #fluvio-header-text h4 {
         margin: 0;
         font-size: 18px;
@@ -166,13 +232,20 @@
         justify-content: center;
       }
 
+      #fluvio-close svg {
+        width: 20px;
+        height: 20px;
+      }
+
       #fluvio-close:hover {
         background: rgba(255,255,255,0.1);
       }
 
       #fluvio-content {
-        padding: 32px 24px 24px;
+        padding: 24px 20px 16px;
         text-align: center;
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
       }
 
       #fluvio-mode-selector {
@@ -195,6 +268,15 @@
         transition: all 0.2s ease;
         background: transparent;
         color: #6B7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .fluvio-mode-btn svg {
+        width: 16px;
+        height: 16px;
       }
 
       .fluvio-mode-btn.active {
@@ -218,7 +300,8 @@
       }
 
       #fluvio-chat-messages {
-        height: 300px;
+        height: 180px;
+        max-height: calc(30vh - 60px);
         overflow-y: auto;
         border: 1px solid #E5E7EB;
         border-radius: 8px;
@@ -248,6 +331,11 @@
         justify-content: center;
         font-size: 14px;
         flex-shrink: 0;
+      }
+
+      .fluvio-message-avatar svg {
+        width: 16px;
+        height: 16px;
       }
 
       .fluvio-message.agent .fluvio-message-avatar {
@@ -296,7 +384,7 @@
         font-size: 14px;
         resize: none;
         min-height: 20px;
-        max-height: 100px;
+        max-height: 80px;
         font-family: inherit;
       }
 
@@ -316,6 +404,14 @@
         font-size: 14px;
         font-weight: 600;
         transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #fluvio-chat-send svg {
+        width: 16px;
+        height: 16px;
       }
 
       #fluvio-chat-send:hover:not(:disabled) {
@@ -369,25 +465,6 @@
       @keyframes fluvio-typing {
         0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
         40% { transform: scale(1); opacity: 1; }
-      }
-
-      #fluvio-footer {
-        padding: 12px 24px 16px;
-        text-align: center;
-        border-top: 1px solid #F3F4F6;
-        background: #FAFAFA;
-      }
-
-      #fluvio-branding {
-        font-size: 12px;
-        color: #9CA3AF;
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s ease;
-      }
-
-      #fluvio-branding:hover {
-        color: ${config.color};
       }
 
       #fluvio-footer {
@@ -466,6 +543,11 @@
         font-family: inherit;
       }
 
+      #fluvio-call-button svg {
+        width: 18px;
+        height: 18px;
+      }
+
       #fluvio-call-button.start {
         background: ${config.color};
         color: white;
@@ -490,10 +572,6 @@
         opacity: 0.6;
         cursor: not-allowed;
         transform: none !important;
-      }
-
-      #fluvio-call-icon {
-        font-size: 18px;
       }
 
       #fluvio-transcript-container {
@@ -576,11 +654,13 @@
         }
 
         #fluvio-panel {
-          width: calc(100vw - 32px);
-          right: 16px;
-          left: 16px;
-          bottom: 80px;
-          max-height: calc(100vh - 120px);
+          width: calc(100vw - 32px) !important;
+          max-width: calc(100vw - 32px) !important;
+          right: 16px !important;
+          left: 16px !important;
+          bottom: 80px !important;
+          top: auto !important;
+          max-height: calc(100vh - 120px) !important;
           overflow-y: auto;
         }
 
@@ -589,12 +669,26 @@
         }
 
         #fluvio-content {
-          padding: 24px 20px 20px;
+          padding: 16px 12px 12px;
         }
 
         #fluvio-instruction {
           font-size: 15px;
           margin-bottom: 24px;
+        }
+
+        #fluvio-chat-messages {
+          height: 160px !important;
+          max-height: calc(25vh - 30px) !important;
+        }
+
+        #fluvio-chat-input {
+          max-height: 60px !important;
+          font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        #fluvio-footer {
+          padding: 8px 16px 12px !important;
         }
       }
 
@@ -608,11 +702,18 @@
         }
 
         #fluvio-panel {
-          width: calc(100vw - 24px);
-          right: 12px;
-          left: 12px;
-          bottom: 72px;
+          width: calc(100vw - 24px) !important;
+          max-width: calc(100vw - 24px) !important;
+          right: 12px !important;
+          left: 12px !important;
+          bottom: 72px !important;
           border-radius: 16px;
+          max-height: calc(100vh - 100px) !important;
+        }
+
+        #fluvio-chat-messages {
+          height: 140px !important;
+          max-height: calc(20vh - 20px) !important;
         }
       }
 
@@ -665,7 +766,7 @@
     // Create floating button
     const fab = document.createElement('div');
     fab.id = 'fluvio-fab';
-    fab.innerHTML = '💬';
+    fab.innerHTML = createIcon('MessageCircle');
     fab.setAttribute('aria-label', 'Open voice assistant');
     fab.setAttribute('role', 'button');
     fab.setAttribute('tabindex', '0');
@@ -682,22 +783,22 @@
     panel.innerHTML = `
       <div id="fluvio-header">
         <div id="fluvio-header-content">
-          <div id="fluvio-header-icon">🤖</div>
+          <div id="fluvio-header-icon">${createIcon('Bot')}</div>
           <div id="fluvio-header-text">
             <h4>${config.title}</h4>
             <p>${config.subtitle}</p>
           </div>
         </div>
-        <button id="fluvio-close" aria-label="Close">×</button>
+        <button id="fluvio-close" aria-label="Close">${createIcon('X')}</button>
       </div>
       <div id="fluvio-content">
         ${showModeSelector ? `
         <div id="fluvio-mode-selector">
           <button class="fluvio-mode-btn ${config.defaultMode === 'voice' ? 'active' : ''}" data-mode="voice">
-            📞 Voice Call
+            ${createIcon('Phone')} Voice Call
           </button>
           <button class="fluvio-mode-btn ${config.defaultMode === 'chat' ? 'active' : ''}" data-mode="chat">
-            💬 Text Chat
+            ${createIcon('MessageCircle')} Text Chat
           </button>
         </div>
         ` : ''}
@@ -711,7 +812,7 @@
             <span id="fluvio-status" class="offline">Loading...</span>
           </div>
           <button id="fluvio-call-button" class="start" disabled>
-            <span id="fluvio-call-icon">📞</span>
+            <span id="fluvio-call-icon">${createIcon('Phone')}</span>
             <span id="fluvio-call-text">Call</span>
           </button>
           <div id="fluvio-transcript-container">
@@ -736,7 +837,7 @@
           </div>
           <div id="fluvio-chat-input-container">
             <textarea id="fluvio-chat-input" placeholder="Type your message..." rows="1"></textarea>
-            <button id="fluvio-chat-send">Send</button>
+            <button id="fluvio-chat-send">${createIcon('Send')}</button>
           </div>
         </div>
       </div>
@@ -747,6 +848,61 @@
 
     document.body.appendChild(fab);
     document.body.appendChild(panel);
+
+    // Initialize Lucide icons after DOM insertion
+    setTimeout(() => {
+      initializeLucideIcons();
+    }, 100);
+
+    // Add viewport positioning logic
+    function adjustPanelPosition() {
+      const fabRect = fab.getBoundingClientRect();
+      const panelWidth = Math.min(380, window.innerWidth - 40);
+      const panelMaxHeight = Math.min(500, window.innerHeight - 120); // Reduced from 600 to 500
+      const margin = 20;
+      
+      // Calculate optimal position
+      let left = fabRect.right - panelWidth;
+      let right = 'auto';
+      let bottom = window.innerHeight - fabRect.top + 20;
+      let top = 'auto';
+      
+      // Ensure panel doesn't go off the left edge
+      if (left < margin) {
+        left = margin;
+        right = 'auto';
+      }
+      
+      // Ensure panel doesn't go off the right edge
+      if (left + panelWidth > window.innerWidth - margin) {
+        left = 'auto';
+        right = margin;
+      }
+      
+      // Ensure panel doesn't go off the top or bottom
+      if (bottom + panelMaxHeight > window.innerHeight - margin) {
+        bottom = 'auto';
+        top = margin;
+      }
+      
+      // Apply positioning
+      panel.style.left = left === 'auto' ? 'auto' : left + 'px';
+      panel.style.right = right === 'auto' ? 'auto' : right + 'px';
+      panel.style.bottom = bottom === 'auto' ? 'auto' : bottom + 'px';
+      panel.style.top = top === 'auto' ? 'auto' : top + 'px';
+      panel.style.maxHeight = panelMaxHeight + 'px';
+      panel.style.width = panelWidth + 'px';
+      
+      // Adjust chat messages height if needed
+      const chatMessages = document.getElementById('fluvio-chat-messages');
+      if (chatMessages) {
+        const availableHeight = panelMaxHeight - 240; // Account for header, footer, input, padding, and branding
+        chatMessages.style.maxHeight = Math.max(120, availableHeight) + 'px';
+      }
+    }
+
+    // Store the positioning function for later use
+    panel.adjustPosition = adjustPanelPosition;
 
     return {
       fab,
@@ -768,50 +924,49 @@
       modeSelector: document.getElementById('fluvio-mode-selector')
     };
   }
-
   // Load Retell SDK
   function loadRetellSDK() {
     return new Promise((resolve, reject) => {
-      console.log('🎧 Attempting to load Retell SDK from unpkg...');
+      console.log('Attempting to load Retell SDK from unpkg...');
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/retell-client-js-sdk@latest/dist/retell-client-js-sdk.min.js';
       
       script.onload = () => {
-        console.log('🎧 Retell SDK loaded from unpkg');
+        console.log('Retell SDK loaded from unpkg');
         resolve();
       };
       
       script.onerror = () => {
-        console.log('🎧 unpkg failed, trying jsdelivr...');
+        console.log('unpkg failed, trying jsdelivr...');
         // Fallback to jsdelivr
         const script2 = document.createElement('script');
         script2.src = 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/retell-client-js-sdk.min.js';
         
         script2.onload = () => {
-          console.log('🎧 Retell SDK loaded from jsdelivr');
+          console.log('Retell SDK loaded from jsdelivr');
           resolve();
         };
         
         script2.onerror = () => {
-          console.log('🎧 jsdelivr failed, trying skypack...');
+          console.log('jsdelivr failed, trying skypack...');
           // Fallback to skypack with dynamic import
           import('https://cdn.skypack.dev/retell-client-js-sdk')
             .then(({ RetellWebClient }) => {
               window.RetellWebClient = RetellWebClient;
-              console.log('🎧 Retell SDK loaded from skypack');
+              console.log('Retell SDK loaded from skypack');
               resolve();
             })
             .catch(err => {
-              console.log('🎧 skypack failed, trying esm.sh...');
+              console.log('skypack failed, trying esm.sh...');
               // Final fallback to esm.sh
               import('https://esm.sh/retell-client-js-sdk')
                 .then(({ RetellWebClient }) => {
                   window.RetellWebClient = RetellWebClient;
-                  console.log('🎧 Retell SDK loaded from esm.sh');
+                  console.log('Retell SDK loaded from esm.sh');
                   resolve();
                 })
                 .catch(finalErr => {
-                  console.error('🎧 All SDK loading methods failed');
+                  console.error('All SDK loading methods failed');
                   console.error('unpkg error:', script.error);
                   console.error('jsdelivr error:', script2.error);
                   console.error('skypack error:', err);
@@ -933,15 +1088,21 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = `fluvio-message ${role}`;
       
-      // Ensure proper styling for agent messages
+      // Use Lucide icons for avatars
+      const avatarIcon = role === 'agent' ? createIcon('Bot') : createIcon('User');
       const contentHtml = role === 'agent' 
-        ? `<div class="fluvio-message-avatar">🤖</div><div class="fluvio-message-content" style="background: white !important; color: #1F2937 !important;">${content}</div>`
-        : `<div class="fluvio-message-avatar">👤</div><div class="fluvio-message-content">${content}</div>`;
+        ? `<div class="fluvio-message-avatar">${avatarIcon}</div><div class="fluvio-message-content" style="background: white !important; color: #1F2937 !important;">${content}</div>`
+        : `<div class="fluvio-message-avatar">${avatarIcon}</div><div class="fluvio-message-content">${content}</div>`;
       
       messageDiv.innerHTML = contentHtml;
       
       elements.chatMessages.appendChild(messageDiv);
       elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+      
+      // Initialize icons in the new message
+      setTimeout(() => {
+        initializeLucideIcons();
+      }, 10);
       
       chatHistory.push({ role, content, timestamp: Date.now() });
       console.log('Message added to chat. Total messages:', elements.chatMessages.children.length);
@@ -982,7 +1143,7 @@
               `Thank you for your message! I understand you said: "${message}". How can I help you further?`,
               `I received your message about "${message}". This is a demo response - in production, I would connect to your Retell chat agent.`,
               `Great question! Regarding "${message}" - I'm currently in demo mode. Your actual chat agent would provide real responses here.`,
-              `I see you mentioned "${message}". In live mode, this would be handled by your configured Retell chat agent with full AI capabilities.`
+              `I see you mentioned "${message}". In production mode, I would process this through your configured AI agent and provide personalized assistance.`
             ];
             
             const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
@@ -1089,15 +1250,15 @@
       // Try to find RetellWebClient
       if (window.RetellSDK && window.RetellSDK.RetellWebClient) {
         RetellWebClient = window.RetellSDK.RetellWebClient;
-        console.log('🎧 Found RetellWebClient in window.RetellSDK');
+        console.log('Found RetellWebClient in window.RetellSDK');
       } else if (window.RetellWebClient) {
         RetellWebClient = window.RetellWebClient;
-        console.log('🎧 Found RetellWebClient in window');
+        console.log('Found RetellWebClient in window');
       } else if (window.Retell && window.Retell.RetellWebClient) {
         RetellWebClient = window.Retell.RetellWebClient;
-        console.log('🎧 Found RetellWebClient in window.Retell');
+        console.log('Found RetellWebClient in window.Retell');
       } else {
-        console.warn('🎧 RetellWebClient not found - enabling demo mode');
+        console.warn('RetellWebClient not found - enabling demo mode');
         demoMode = true;
       }
 
@@ -1110,10 +1271,10 @@
       elements.statusEl.className = demoMode ? 'connecting' : 'offline';
       elements.callButton.disabled = false;
 
-      console.log('🎧 Widget initialized successfully' + (demoMode ? ' (Demo Mode)' : ''));
+      console.log('Widget initialized successfully' + (demoMode ? ' (Demo Mode)' : ''));
 
     } catch (error) {
-      console.warn('🎧 SDK initialization failed, enabling demo mode:', error);
+      console.warn('SDK initialization failed, enabling demo mode:', error);
       demoMode = true;
       elements.statusEl.textContent = 'Demo Mode';
       elements.statusEl.className = 'connecting';
@@ -1122,23 +1283,45 @@
 
     // Event handlers
     elements.fab.addEventListener('click', (e) => {
-      console.log('🎧 FAB clicked');
+      console.log('FAB clicked');
       
       const isVisible = elements.panel.style.display === 'block';
-      elements.panel.style.display = isVisible ? 'none' : 'block';
+      if (isVisible) {
+        elements.panel.style.display = 'none';
+      } else {
+        // Adjust position before showing
+        if (elements.panel.adjustPosition) {
+          elements.panel.adjustPosition();
+        }
+        elements.panel.style.display = 'block';
+      }
     });
 
     // Keyboard support
     elements.fab.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        console.log('🎧 FAB keyboard activated');
+        console.log('FAB keyboard activated');
         elements.fab.click();
       }
     });
 
+    // Add window resize listener to adjust panel position
+    window.addEventListener('resize', () => {
+      if (elements.panel.style.display === 'block' && elements.panel.adjustPosition) {
+        elements.panel.adjustPosition();
+      }
+    });
+
+    // Add scroll listener to adjust panel position
+    window.addEventListener('scroll', () => {
+      if (elements.panel.style.display === 'block' && elements.panel.adjustPosition) {
+        elements.panel.adjustPosition();
+      }
+    });
+
     document.getElementById('fluvio-close').addEventListener('click', (e) => {
-      console.log('🎧 Close button clicked');
+      console.log('Close button clicked');
       elements.panel.style.display = 'none';
     });
 
@@ -1173,7 +1356,15 @@
       // Auto-resize textarea
       elements.chatInput.addEventListener('input', (e) => {
         e.target.style.height = 'auto';
-        e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+        const newHeight = Math.min(e.target.scrollHeight, 30); // Reduced from 100px to 80px
+        e.target.style.height = newHeight + 'px';
+        
+        // Reposition panel if it's visible and might overflow
+        if (elements.panel.style.display === 'block' && elements.panel.adjustPosition) {
+          setTimeout(() => {
+            elements.panel.adjustPosition();
+          }, 10);
+        }
       });
     } else {
       console.warn('Chat input not found');
@@ -1209,21 +1400,21 @@
       // Show/hide transcript
       transcriptDiv.style.display = transcriptEnabled ? 'block' : 'none';
       
-      console.log('🎧 Transcript toggled:', transcriptEnabled ? 'ON' : 'OFF');
+      console.log('Transcript toggled:', transcriptEnabled ? 'ON' : 'OFF');
     });
 
     elements.callButton.addEventListener('click', async (e) => {
-      console.log('🎧 Call button clicked');
+      console.log('Call button clicked');
       
       if (elements.callButton.disabled) {
-        console.log('🎧 Call button is disabled, ignoring click');
+        console.log('Call button is disabled, ignoring click');
         return;
       }
       
       if (demoMode) {
         // Demo mode simulation
         if (!isCallActive) {
-          console.log('🎧 Demo: Starting simulated call...');
+          console.log('Demo: Starting simulated call...');
           elements.statusEl.textContent = 'Connecting...';
           elements.statusEl.className = 'connecting';
           elements.callButton.disabled = true;
@@ -1235,23 +1426,35 @@
             elements.callButton.className = 'end';
             elements.callButton.disabled = false;
             elements.callText.textContent = 'End Call';
+            elements.callIcon.innerHTML = createIcon('PhoneOff');
             elements.transcriptContainer.classList.add('show');
+            
+            // Initialize new icons
+            setTimeout(() => {
+              initializeLucideIcons();
+            }, 10);
             
             if (transcriptEnabled) {
               const transcriptDiv = document.getElementById('fluvio-transcript');
               transcriptDiv.textContent = 'Demo Mode: This is a simulation.\n\nIn production, this would show real-time conversation transcripts between you and the AI agent.\n\nThe actual voice calls work with your Retell AI agent when the SDK loads properly.';
             }
             
-            console.log('🎧 Demo: Call connected');
+            console.log('Demo: Call connected');
           }, 1500);
         } else {
-          console.log('🎧 Demo: Ending simulated call...');
+          console.log('Demo: Ending simulated call...');
           elements.statusEl.textContent = 'Demo Mode';
           elements.statusEl.className = 'connecting';
           isCallActive = false;
           elements.callButton.className = 'start';
           elements.callButton.disabled = false;
           elements.callText.textContent = 'Call';
+          elements.callIcon.innerHTML = createIcon('Phone');
+          
+          // Initialize new icons
+          setTimeout(() => {
+            initializeLucideIcons();
+          }, 10);
         }
         return;
       }
@@ -1259,14 +1462,14 @@
       // Real Retell functionality
       if (!isCallActive) {
         try {
-          console.log('🎧 Starting real call...');
+          console.log('Starting real call...');
           elements.statusEl.textContent = 'Connecting...';
           elements.statusEl.className = 'connecting';
           elements.callButton.disabled = true;
 
           // Check if webhook URL is a placeholder
           if (config.webhook.includes('your-webhook') || config.webhook.includes('httpbin.org')) {
-            console.log('🎧 Demo webhook detected, simulating call...');
+            console.log('Demo webhook detected, simulating call...');
             // Simulate demo call for testing
             setTimeout(() => {
               elements.statusEl.textContent = 'Connected (Demo)';
@@ -1275,7 +1478,13 @@
               elements.callButton.className = 'end';
               elements.callButton.disabled = false;
               elements.callText.textContent = 'End Call';
+              elements.callIcon.innerHTML = createIcon('PhoneOff');
               elements.transcriptContainer.classList.add('show');
+              
+              // Initialize new icons
+              setTimeout(() => {
+                initializeLucideIcons();
+              }, 10);
               
               if (transcriptEnabled) {
                 const transcriptDiv = document.getElementById('fluvio-transcript');
@@ -1330,14 +1539,14 @@
 
           if (webhookData.call_inbound && webhookData.call_inbound.dynamic_variables) {
             callOptions.retell_llm_dynamic_variables = webhookData.call_inbound.dynamic_variables;
-            console.log('🎧 Dynamic variables included:', webhookData.call_inbound.dynamic_variables);
+            console.log('Dynamic variables included:', webhookData.call_inbound.dynamic_variables);
           }
 
-          console.log('🎧 Starting call with options:', callOptions);
+          console.log('Starting call with options:', callOptions);
           await client.startCall(callOptions);
 
         } catch (error) {
-          console.error('🎧 Call failed:', error);
+          console.error('Call failed:', error);
           
           // Provide more specific error messages
           let errorMessage = 'Connection failed';
@@ -1354,7 +1563,7 @@
           elements.callButton.disabled = false;
         }
       } else {
-        console.log('🎧 Ending real call...');
+        console.log('Ending real call...');
         if (client && client.stopCall) {
           client.stopCall();
         } else {
@@ -1365,6 +1574,12 @@
           elements.callButton.className = 'start';
           elements.callButton.disabled = false;
           elements.callText.textContent = 'Call';
+          elements.callIcon.innerHTML = createIcon('Phone');
+          
+          // Initialize new icons
+          setTimeout(() => {
+            initializeLucideIcons();
+          }, 10);
         }
       }
     });
@@ -1372,24 +1587,36 @@
     // Retell event listeners (only if not in demo mode)
     if (!demoMode && client) {
       client.on('call_started', () => {
-        console.log('🎧 Call started');
+        console.log('Call started');
         elements.statusEl.textContent = 'Connected';
         elements.statusEl.className = 'online';
         isCallActive = true;
         elements.callButton.className = 'end';
         elements.callButton.disabled = false;
         elements.callText.textContent = 'End Call';
+        elements.callIcon.innerHTML = createIcon('PhoneOff');
         elements.transcriptContainer.classList.add('show');
+        
+        // Initialize new icons
+        setTimeout(() => {
+          initializeLucideIcons();
+        }, 10);
       });
 
       client.on('call_ended', () => {
-        console.log('🎧 Call ended');
+        console.log('Call ended');
         elements.statusEl.textContent = 'Offline';
         elements.statusEl.className = 'offline';
         isCallActive = false;
         elements.callButton.className = 'start';
         elements.callButton.disabled = false;
         elements.callText.textContent = 'Call';
+        elements.callIcon.innerHTML = createIcon('Phone');
+        
+        // Initialize new icons
+        setTimeout(() => {
+          initializeLucideIcons();
+        }, 10);
       });
 
       client.on('agent_start_talking', () => {
@@ -1414,13 +1641,19 @@
       });
 
       client.on('error', (error) => {
-        console.error('🎧 Retell error:', error);
+        console.error('Retell error:', error);
         elements.statusEl.textContent = 'Error occurred';
         elements.statusEl.className = 'offline';
         isCallActive = false;
         elements.callButton.className = 'start';
         elements.callButton.disabled = false;
         elements.callText.textContent = 'Call';
+        elements.callIcon.innerHTML = createIcon('Phone');
+        
+        // Initialize new icons
+        setTimeout(() => {
+          initializeLucideIcons();
+        }, 10);
       });
     }
   }
@@ -1428,19 +1661,22 @@
   // Main initialization
   async function init() {
     if (!config.webhook) {
-      console.error('🎧 Missing data-webhook attribute');
+      console.error('Missing data-webhook attribute');
       return;
     }
 
     // Validate agent configuration
     if (config.mode === 'voice' || config.mode === 'dual' || config.mode === 'chat') {
       if (!config.projectId) {
-        console.error('🎧 Missing project ID (data-project-id)');
+        console.error('Missing project ID (data-project-id)');
         return;
       }
     }
 
     try {
+      // Load Lucide icons first
+      await loadLucideIcons();
+      
       // Inject styles
       injectStyles();
 
@@ -1451,9 +1687,9 @@
       if (config.mode === 'voice' || config.mode === 'dual') {
         try {
           await loadRetellSDK();
-          console.log('🎧 SDK loaded successfully, voice functionality enabled');
+          console.log('SDK loaded successfully, voice functionality enabled');
         } catch (error) {
-          console.warn('🎧 SDK loading failed, voice will run in demo mode:', error.message);
+          console.warn('SDK loading failed, voice will run in demo mode:', error.message);
         }
       }
 
@@ -1466,7 +1702,7 @@
         defaultMode: config.defaultMode
       });
     } catch (error) {
-      console.error('🎧 Widget initialization failed:', error);
+      console.error('Widget initialization failed:', error);
     }
   }
 

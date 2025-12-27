@@ -19,7 +19,32 @@
   }
   window.FluvioButtonLoaded = true;
 
-  console.log('🎧 Fluvio Button Widget Loading...');
+  console.log('Fluvio Button Widget Loading...');
+
+  // Load Lucide Icons
+  function loadLucideIcons() {
+    return new Promise((resolve, reject) => {
+      if (window.lucide) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/lucide@latest/dist/umd/lucide.js';
+      
+      script.onload = () => {
+        console.log('Lucide icons loaded successfully');
+        resolve();
+      };
+      
+      script.onerror = () => {
+        console.warn('Failed to load Lucide icons, using fallback');
+        resolve(); // Continue without icons
+      };
+      
+      document.head.appendChild(script);
+    });
+  }
 
   let retellClient = null;
   let isCallActive = false;
@@ -33,37 +58,37 @@
         return;
       }
 
-      console.log('🎧 Attempting to load Retell SDK from unpkg...');
+      console.log('Attempting to load Retell SDK from unpkg...');
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/retell-client-js-sdk@latest/dist/retell-client-js-sdk.min.js';
       
       script.onload = () => {
-        console.log('🎧 Retell SDK loaded from unpkg');
+        console.log('Retell SDK loaded from unpkg');
         resolve();
       };
       
       script.onerror = () => {
-        console.log('🎧 unpkg failed, trying jsdelivr...');
+        console.log('unpkg failed, trying jsdelivr...');
         // Fallback to jsdelivr
         const script2 = document.createElement('script');
         script2.src = 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/retell-client-js-sdk.min.js';
         
         script2.onload = () => {
-          console.log('🎧 Retell SDK loaded from jsdelivr');
+          console.log('Retell SDK loaded from jsdelivr');
           resolve();
         };
         
         script2.onerror = () => {
-          console.log('🎧 jsdelivr failed, trying skypack...');
+          console.log('jsdelivr failed, trying skypack...');
           // Fallback to skypack with dynamic import
           import('https://cdn.skypack.dev/retell-client-js-sdk')
             .then(({ RetellWebClient }) => {
               window.RetellWebClient = RetellWebClient;
-              console.log('🎧 Retell SDK loaded from skypack');
+              console.log('Retell SDK loaded from skypack');
               resolve();
             })
             .catch(err => {
-              console.error('🎧 All SDK loading methods failed:', err);
+              console.error('All SDK loading methods failed:', err);
               reject(new Error('Failed to load Retell SDK'));
             });
         };
@@ -245,7 +270,7 @@
     try {
       await retellClient.stopCall();
     } catch (error) {
-      console.error('🎧 Failed to end call:', error);
+      console.error('Failed to end call:', error);
     }
   }
 
@@ -253,19 +278,19 @@
   function handleButtonClick(event) {
     const button = event.currentTarget; // Use currentTarget instead of target
     
-    console.log('🎧 Button click detected:', button);
+    console.log('Button click detected:', button);
     
     // Ensure button is not disabled
     if (button.disabled) {
-      console.log('🎧 Button is disabled, ignoring click');
+      console.log('Button is disabled, ignoring click');
       return;
     }
     
     if (isCallActive && button === currentButton) {
-      console.log('🎧 Ending active call');
+      console.log('Ending active call');
       endCall(button);
     } else if (!isCallActive) {
-      console.log('🎧 Starting new call');
+      console.log('Starting new call');
       startCall(button);
     }
   }
@@ -273,23 +298,26 @@
   // Initialize widget
   async function init() {
     try {
+      // Load Lucide icons first
+      await loadLucideIcons();
+      
       // Load Retell SDK
       await loadRetellSDK();
       
       if (!window.RetellWebClient) {
-        console.warn('🎧 RetellWebClient not available, enabling demo mode');
+        console.warn('RetellWebClient not available, enabling demo mode');
         // Enable demo mode instead of failing
         enableDemoMode();
         return;
       }
 
-      console.log('🎧 Retell SDK ready');
+      console.log('Retell SDK ready');
 
       // Initialize buttons with retry mechanism
       initializeButtons();
 
     } catch (error) {
-      console.warn('🎧 Failed to load Retell SDK, enabling demo mode:', error);
+      console.warn('Failed to load Retell SDK, enabling demo mode:', error);
       enableDemoMode();
     }
   }
@@ -305,13 +333,13 @@
       
       if (buttons.length === 0 && retryCount < maxRetries) {
         retryCount++;
-        console.log(`🎧 No buttons found, retrying... (${retryCount}/${maxRetries})`);
+        console.log(`No buttons found, retrying... (${retryCount}/${maxRetries})`);
         setTimeout(tryInitialize, 100);
         return;
       }
 
       if (buttons.length === 0) {
-        console.log('🎧 No Fluvio buttons found after retries');
+        console.log('No Fluvio buttons found after retries');
         return;
       }
 
@@ -332,7 +360,7 @@
           button.style.cursor = 'pointer';
         }
         
-        console.log('🎧 Button initialized:', button);
+        console.log('Button initialized:', button);
       });
 
       // Watch for dynamically added buttons
@@ -349,7 +377,7 @@
                   // Add click handler
                   button.addEventListener('click', handleButtonClick);
                   button.setAttribute('data-fluvio-initialized', 'true');
-                  console.log('🎧 Dynamic button initialized:', button);
+                  console.log('Dynamic button initialized:', button);
                 }
               });
             }
@@ -359,7 +387,7 @@
 
       observer.observe(document.body, { childList: true, subtree: true });
 
-      console.log('🎧 Fluvio Button Widget ready!');
+      console.log('Fluvio Button Widget ready!');
     }
 
     tryInitialize();
@@ -367,7 +395,7 @@
 
   // Demo mode for when SDK fails to load
   function enableDemoMode() {
-    console.log('🎧 Demo mode enabled');
+    console.log('Demo mode enabled');
     
     const maxRetries = 5;
     let retryCount = 0;
@@ -377,13 +405,13 @@
       
       if (buttons.length === 0 && retryCount < maxRetries) {
         retryCount++;
-        console.log(`🎧 Demo mode: No buttons found, retrying... (${retryCount}/${maxRetries})`);
+        console.log(`Demo mode: No buttons found, retrying... (${retryCount}/${maxRetries})`);
         setTimeout(tryInitializeDemo, 100);
         return;
       }
 
       if (buttons.length === 0) {
-        console.log('🎧 Demo mode: No Fluvio buttons found after retries');
+        console.log('Demo mode: No Fluvio buttons found after retries');
         return;
       }
 
@@ -403,20 +431,20 @@
           button.style.cursor = 'pointer';
         }
         
-        console.log('🎧 Button initialized in demo mode:', button);
+        console.log('Button initialized in demo mode:', button);
       });
 
-      console.log('🎧 Fluvio Button Widget ready (Demo Mode)!');
+      console.log('Fluvio Button Widget ready (Demo Mode)!');
     }
 
     function demoClickHandler(e) {
       const button = e.currentTarget; // Use currentTarget instead of target
       
-      console.log('🎧 Demo button click detected:', button);
+      console.log('Demo button click detected:', button);
       
       // Ensure button is not disabled
       if (button.disabled) {
-        console.log('🎧 Demo button is disabled, ignoring click');
+        console.log('Demo button is disabled, ignoring click');
         return;
       }
       

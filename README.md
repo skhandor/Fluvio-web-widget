@@ -9,6 +9,14 @@ This package contains everything you need to deploy voice AI widgets to any webs
 - **Test Examples** - Working examples you can try immediately
 - **Documentation** - Complete guides for customization and deployment
 
+## ✨ Latest Updates
+
+### Professional Lucide Icons
+- **Replaced all emojis** with professional Lucide icons for a modern, consistent look
+- **Better accessibility** and screen reader support
+- **Scalable SVG icons** that look perfect on all devices and screen sizes
+- **Automatic loading** of icon library with fallback support
+
 ## 🚀 Quick Start (Choose One)
 
 ### Option 1: GitHub Pages (Recommended - Free & Easy)
@@ -21,17 +29,19 @@ Upload the `.js` files to your website and use the code examples in the guides.
 
 ```
 CLIENT-DELIVERY/
-├── README.md                     # This file        # Complete GitHub setup (no experience needed)
-├── fluvio-universal-widget.js    # Main floating chat widget
-├── fluvio-button-widget.js       # Custom button widget
-├── test-examples/                     # Working test examples
-│   ├── basic-test.html       # Floating widget demo
-│   ├── branded-test.html       # Floating widget demo
-│   ├── ecommerce-test.html          # Button widget demo
+├── README.md                     # This file        
+├── GITHUB-SETUP-GUIDE.md         # Complete GitHub setup (no experience needed)
+├── fluvio-universal-widget.js    # Main floating chat widget (with Lucide icons)
+├── fluvio-button-widget.js       # Custom button widget (with Lucide icons)
+├── test-lucide-icons.html        # Demo of new professional icons
+├── test-examples/                # Working test examples
+│   ├── basic-test.html           # Floating widget demo
+│   ├── branded-test.html         # Floating widget demo
+│   ├── ecommerce-test.html       # Button widget demo
 │   └── mobile-test.html          # Mobile-friendly demo
 └── docs/                         # Complete documentation
-    ├── QUICK-START.md             # 5-minute setup guide
-    ├── CUSTOMIZATION.md           # Colors, branding, options
+    ├── QUICK-START.md            # 5-minute setup guide
+    ├── CUSTOMIZATION.md          # Colors, branding, options
 ```
 
 ## 🎯 Two Widget Types
