@@ -279,7 +279,7 @@
 
       .fluvio-message.agent .fluvio-message-content {
         background: white;
-        color: #1F2937;
+        color: #1F2937 !important;
         border-color: #E5E7EB;
       }
 
@@ -933,16 +933,19 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = `fluvio-message ${role}`;
       
-      messageDiv.innerHTML = `
-        <div class="fluvio-message-avatar">${role === 'agent' ? '🤖' : '👤'}</div>
-        <div class="fluvio-message-content">${content}</div>
-      `;
+      // Ensure proper styling for agent messages
+      const contentHtml = role === 'agent' 
+        ? `<div class="fluvio-message-avatar">🤖</div><div class="fluvio-message-content" style="background: white !important; color: #1F2937 !important;">${content}</div>`
+        : `<div class="fluvio-message-avatar">👤</div><div class="fluvio-message-content">${content}</div>`;
+      
+      messageDiv.innerHTML = contentHtml;
       
       elements.chatMessages.appendChild(messageDiv);
       elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
       
       chatHistory.push({ role, content, timestamp: Date.now() });
       console.log('Message added to chat. Total messages:', elements.chatMessages.children.length);
+      console.log('Message element created:', messageDiv.outerHTML);
     }
 
     function showTypingIndicator() {

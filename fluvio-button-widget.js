@@ -5,7 +5,7 @@
  * Usage:
  * <button class="fluvio-call-btn" 
  *         data-webhook="https://hook.us2.make.com/your-webhook"
- *         data-agent-id="agent_your_agent_id">Call Now</button>
+ *         data-project-id="your-project-id">Call Now</button>
  * <script src="https://your-domain.com/fluvio-button-widget.js"></script>
  */
 
@@ -76,14 +76,17 @@
   }
 
   // Get access token from webhook
-  async function getAccessToken(webhook, agentId, dynamicVariables = {}) {
+  async function getAccessToken(webhook, projectId, dynamicVariables = {}) {
     try {
-      const payload = { agent_id: agentId };
+      const payload = { 
+        project_id: projectId,
+        mode: 'voice'
+      };
       
       // Add dynamic variables if provided
       if (Object.keys(dynamicVariables).length > 0) {
         payload.dynamic_variables = dynamicVariables;
-        console.log('🎧 Including dynamic variables:', dynamicVariables);
+        console.log('Including dynamic variables:', dynamicVariables);
       }
 
       const response = await fetch(webhook, {
@@ -97,7 +100,7 @@
       }
 
       const responseText = await response.text();
-      console.log('🎧 Webhook response received');
+      console.log('Webhook response received');
 
       try {
         const data = JSON.parse(responseText);
@@ -123,7 +126,7 @@
         };
       }
     } catch (error) {
-      console.error('🎧 Webhook error:', error);
+      console.error('Webhook error:', error);
       throw error;
     }
   }
@@ -154,16 +157,16 @@
   // Start call
   async function startCall(button) {
     if (isCallActive) {
-      console.log('🎧 Call already active');
+      console.log('Call already active');
       return;
     }
 
     const webhook = button.getAttribute('data-webhook');
-    const agentId = button.getAttribute('data-agent-id');
+    const projectId = button.getAttribute('data-project-id');
 
-    if (!webhook || !agentId) {
-      console.error('🎧 Missing webhook or agent-id attributes');
-      alert('Button configuration error: Missing webhook or agent-id');
+    if (!webhook || !projectId) {
+      console.error('Missing webhook or project-id attributes');
+      alert('Button configuration error: Missing webhook or project-id');
       return;
     }
 
@@ -179,7 +182,7 @@
       const dynamicVariables = getDynamicVariables(button);
 
       // Get access token
-      const { accessToken, dynamicVariables: webhookVariables } = await getAccessToken(webhook, agentId, dynamicVariables);
+      const { accessToken, dynamicVariables: webhookVariables } = await getAccessToken(webhook, projectId, dynamicVariables);
 
       // Merge dynamic variables (webhook takes priority)
       const finalVariables = { ...dynamicVariables, ...webhookVariables };
@@ -189,14 +192,14 @@
         retellClient = new window.RetellWebClient();
         
         retellClient.on('call_started', () => {
-          console.log('🎧 Call started');
+          console.log('Call started');
           isCallActive = true;
           button.textContent = 'End Call';
           button.disabled = false;
         });
 
         retellClient.on('call_ended', () => {
-          console.log('🎧 Call ended');
+          console.log('Call ended');
           isCallActive = false;
           button.textContent = originalText;
           button.disabled = false;
@@ -204,7 +207,7 @@
         });
 
         retellClient.on('error', (error) => {
-          console.error('🎧 Call error:', error);
+          console.error('Call error:', error);
           isCallActive = false;
           button.textContent = originalText;
           button.disabled = false;
@@ -219,13 +222,13 @@
       // Add dynamic variables if available
       if (Object.keys(finalVariables).length > 0) {
         callOptions.retell_llm_dynamic_variables = finalVariables;
-        console.log('🎧 Starting call with dynamic variables:', finalVariables);
+        console.log('Starting call with dynamic variables:', finalVariables);
       }
 
       await retellClient.startCall(callOptions);
 
     } catch (error) {
-      console.error('🎧 Failed to start call:', error);
+      console.error('Failed to start call:', error);
       button.textContent = originalText;
       button.disabled = false;
       currentButton = null;
